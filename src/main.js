@@ -12,7 +12,6 @@ const gameboard = (function () {
   }
 
   function getBoard() {
-    console.log(gameboard);
     return gameboard;
   }
 
@@ -28,6 +27,7 @@ const gameboard = (function () {
   function placeMark(index, symbol) {
     if (gameboard[index] === "") {
       gameboard[index] = symbol;
+      displayController.renderCell(symbol);
       console.log(gameboard);
     } else {
       return;
@@ -50,6 +50,7 @@ const gameController = (function () {
     X: "X",
     O: "O",
   };
+  let isThereWinner = false;
   const player1 = createPlayer("Diana", SYMBOL.X);
   const player2 = createPlayer("Computer", SYMBOL.O);
   const playerX = player1.symbol === SYMBOL.X ? player1 : player2;
@@ -62,12 +63,12 @@ const gameController = (function () {
       : (nextTurn = player1.name);
   }
 
-  function playRound() {
+  function playRound(cellNum) {
     if (nextTurn === player1.name) {
-      player1.makeMove(2);
+      player1.makeMove(cellNum);
       console.log(`${player1.name} made a move`);
     } else {
-      player2.makeMove(2);
+      player2.makeMove(cellNum);
       console.log(`${player2.name} made a move`);
     }
     switchPlayer();
@@ -137,19 +138,23 @@ const gameController = (function () {
       }
     });
 
-    if (isGameboardFull) defineWinner();
+    if (isGameboardFull && !isThereWinner) defineWinner();
   }
 
   function defineWinner(player) {
     if (!player) {
       console.log("It's a tie!");
     } else {
-      const winner = player.name;
-      console.log(winner);
+      console.log(player.name, "won!");
+      isThereWinner = true;
     }
+
+    displayController.disableButtons();
   }
 
-  playRound();
+  return {
+    playRound,
+  };
 })();
 
 // Player factory function
@@ -167,3 +172,40 @@ function createPlayer(playerName, playerSymbol) {
     makeMove,
   };
 }
+
+// Display controller module
+const displayController = (function () {
+  const grid = document.querySelector(".grid");
+  const buttons = document.querySelectorAll("button");
+  let clickedCell;
+
+  grid.addEventListener("click", handleClick);
+
+  function handleClick(e) {
+    const cellNumber = Number(e.target.getAttribute("data-cell"));
+    const board = gameboard.getBoard();
+    const isFull = gameboard.isFull();
+
+    if (board[cellNumber] === "") {
+      clickedCell = e.target;
+      gameController.playRound(cellNumber);
+    }
+  }
+
+  function renderCell(symbol) {
+    clickedCell.innerText = symbol;
+  }
+
+  function disableButtons() {
+    buttons.forEach((button) => (button.disabled = true));
+  }
+
+  // function highlightCells(cells) {
+
+  // }
+
+  return {
+    renderCell,
+    disableButtons,
+  };
+})();
