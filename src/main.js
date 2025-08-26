@@ -9,7 +9,6 @@ const gameboard = (function () {
     for (let i = 0; i < boardSize; i++) {
       gameboard.push("");
     }
-    console.log(gameboard);
   }
 
   function getBoard() {
