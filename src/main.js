@@ -11,6 +11,47 @@ const gameboard = (function () {
     }
   }
 
+  function divideByRows() {
+    const board = getBoard();
+    const rows = [];
+
+    for (let i = 0; i < board.length; i++) {
+      if (i === 0 || i === 3 || i === 6) rows.push([]);
+      if (i <= 2) rows[0].push(board[i]);
+      if (i > 2 && i <= 5) rows[1].push(board[i]);
+      if (i > 5 && i <= 8) rows[2].push(board[i]);
+    }
+
+    return rows;
+  }
+
+  function divideByColumns() {
+    const board = getBoard();
+    const cols = [];
+
+    for (let i = 0; i < board.length; i++) {
+      if (i === 0 || i === 1 || i === 2) cols.push([]);
+      if (i === 0 || i % 3 === 0) cols[0].push(board[i]);
+      if (i === 1 || (i - 1) % 3 === 0) cols[1].push(board[i]);
+      if (i === 2 || (i - 2) % 3 === 0) cols[2].push(board[i]);
+    }
+
+    return cols;
+  }
+
+  function divideByDiagonals() {
+    const board = getBoard();
+    const diagonals = [];
+
+    for (let i = 0; i < board.length; i++) {
+      if (i === 0 || i === 2) diagonals.push([]);
+      if (i === 0 || i % 4 === 0) diagonals[0].push(board[i]);
+      if (i === 2 || i === 4 || i === 6) diagonals[1].push(board[i]);
+    }
+
+    return diagonals;
+  }
+
   function getBoard() {
     return gameboard;
   }
@@ -41,6 +82,9 @@ const gameboard = (function () {
     getBoard,
     resetBoard,
     isFull,
+    divideByRows,
+    divideByColumns,
+    divideByDiagonals,
   };
 })();
 
@@ -78,65 +122,29 @@ const gameController = (function () {
 
   function checkGameStatus() {
     const isGameboardFull = gameboard.isFull();
-    const board = gameboard.getBoard();
-    const rows = [];
-    const cols = [];
-    const diagonals = [];
-    const xWin = SYMBOL.X.repeat(3);
-    const oWin = SYMBOL.O.repeat(3);
+    const rows = gameboard.divideByRows();
+    const cols = gameboard.divideByColumns();
+    const diagonals = gameboard.divideByDiagonals();
+    const xWinPattern = SYMBOL.X.repeat(3);
+    const oWinPattern = SYMBOL.O.repeat(3);
 
-    // Rows
-    for (let i = 0; i < board.length; i++) {
-      if (i === 0 || i === 3 || i === 6) rows.push([]);
-      if (i <= 2) rows[0].push(board[i]);
-      if (i > 2 && i <= 5) rows[1].push(board[i]);
-      if (i > 5 && i <= 8) rows[2].push(board[i]);
+    function loopThroughDirections(directions, identificator) {
+      directions.forEach((direction, index) => {
+        const str = direction.join("");
+
+        if (str === xWinPattern) {
+          defineWinner(playerX);
+          displayController.highlightDirection(identificator, index);
+        } else if (str === oWinPattern) {
+          defineWinner(playerO);
+          displayController.highlightDirection(identificator, index);
+        }
+      });
     }
 
-    // Columns
-    for (let i = 0; i < board.length; i++) {
-      if (i === 0 || i === 1 || i === 2) cols.push([]);
-      if (i === 0 || i % 3 === 0) cols[0].push(board[i]);
-      if (i === 1 || (i - 1) % 3 === 0) cols[1].push(board[i]);
-      if (i === 2 || (i - 2) % 3 === 0) cols[2].push(board[i]);
-    }
-
-    // Diagonals
-    for (let i = 0; i < board.length; i++) {
-      if (i === 0 || i === 2) diagonals.push([]);
-      if (i === 0 || i % 4 === 0) diagonals[0].push(board[i]);
-      if (i === 2 || i === 4 || i === 6) diagonals[1].push(board[i]);
-    }
-
-    rows.forEach((row) => {
-      const str = row.join("");
-
-      if (str === xWin) {
-        defineWinner(playerX);
-      } else if (str === oWin) {
-        defineWinner(playerO);
-      }
-    });
-
-    cols.forEach((col) => {
-      const str = col.join("");
-
-      if (str === xWin) {
-        defineWinner(playerX);
-      } else if (str === oWin) {
-        defineWinner(playerO);
-      }
-    });
-
-    diagonals.forEach((diagonal) => {
-      const str = diagonal.join("");
-
-      if (str === xWin) {
-        defineWinner(playerX);
-      } else if (str === oWin) {
-        defineWinner(playerO);
-      }
-    });
+    loopThroughDirections(rows, "rows");
+    loopThroughDirections(cols, "cols");
+    loopThroughDirections(diagonals, "diagonals");
 
     if (isGameboardFull && !isThereWinner) defineWinner();
   }
@@ -175,6 +183,10 @@ function createPlayer(playerName, playerSymbol) {
 
 // Display controller module
 const displayController = (function () {
+  const rows = [[0, 1, 2], [3, 4, 5], [6, 7, 8]];
+  const columns = [[0, 3, 6], [1, 4, 7], [2, 5, 8]];
+  const diagonals = [[0, 4, 8], [2, 4, 6]];
+
   const grid = document.querySelector(".grid");
   const buttons = document.querySelectorAll("button");
   let clickedCell;
@@ -184,7 +196,6 @@ const displayController = (function () {
   function handleClick(e) {
     const cellNumber = Number(e.target.getAttribute("data-cell"));
     const board = gameboard.getBoard();
-    const isFull = gameboard.isFull();
 
     if (board[cellNumber] === "") {
       clickedCell = e.target;
@@ -200,12 +211,37 @@ const displayController = (function () {
     buttons.forEach((button) => (button.disabled = true));
   }
 
-  // function highlightCells(cells) {
+  function highlightDirection(id, index) {
+    switch (id) {
+      case "rows":
+        const winnerRow = rows[index];
+        winnerRow.forEach(cellId => {
+          const btn = grid.querySelector(`[data-cell="${cellId}"]`);
+          btn.classList.add("highlight");
+        })
+      break;
 
-  // }
+      case "cols":
+        const winnerCol = columns[index];
+        winnerCol.forEach(cellId => {
+          const btn = grid.querySelector(`[data-cell="${cellId}"]`);
+          btn.classList.add("highlight");
+        })
+      break;
+
+      case "diagonals":
+        const winnerDiagonal = diagonals[index];
+        winnerDiagonal.forEach(cellId => {
+          const btn = grid.querySelector(`[data-cell="${cellId}"]`);
+          btn.classList.add("highlight");
+        })
+      break;
+    }
+  }
 
   return {
     renderCell,
     disableButtons,
+    highlightDirection,
   };
 })();
