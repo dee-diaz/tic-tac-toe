@@ -172,7 +172,6 @@ const gameController = (function () {
       displayController.showInfoMessage(message.tie);
     } else {
       console.log(player.name, "won!");
-      (player.name === "Computer") ? displayController.showInfoMessage(message.loss) : displayController.showInfoMessage(message.win);
       isThereWinner = true;
       updateScore(player);
     }
