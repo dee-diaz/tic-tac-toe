@@ -162,10 +162,17 @@ const gameController = (function () {
   }
 
   function defineWinner(player) {
+    const message = {
+      tie: "It's a tie 🤝",
+      win: "You won 🏆",
+      loss: "Computer won 🤖"
+    }
     if (!player) {
       console.log("It's a tie!");
+      displayController.showInfoMessage(message.tie);
     } else {
       console.log(player.name, "won!");
+      (player.name === "Computer") ? displayController.showInfoMessage(message.loss) : displayController.showInfoMessage(message.win);
       isThereWinner = true;
       updateScore(player);
     }
@@ -248,6 +255,7 @@ const displayController = (function () {
   ];
 
   const grid = document.querySelector(".grid");
+  const infoMessageCont = grid.querySelector(".info"); 
   const buttons = grid.querySelectorAll("button");
   const btnRestart = document.querySelector(".btn-restart");
   const choiceButtons = document.querySelectorAll(
@@ -361,6 +369,16 @@ const displayController = (function () {
     }, 1000)
   }
 
+  function showInfoMessage(message) {
+    infoMessageCont.style.display = "flex";
+    infoMessageCont.innerText = message;
+
+    setTimeout(() => {
+      infoMessageCont.style.display = "none";
+      infoMessageCont.innerText = "";
+    }, 2000);
+  }
+
   return {
     renderCell,
     disableButtons,
@@ -369,5 +387,6 @@ const displayController = (function () {
     updateScore,
     resetForNewGame,
     highlightScore,
+    showInfoMessage,
   };
 })();
