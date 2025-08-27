@@ -95,8 +95,8 @@ const gameController = (function () {
     O: "O",
   };
   let isThereWinner = false;
-  const player1 = createPlayer("Diana", SYMBOL.X);
-  const player2 = createPlayer("Computer", SYMBOL.O);
+  const player1 = createPlayer("Diana", SYMBOL.O);
+  const player2 = createPlayer("Computer", SYMBOL.X);
   const playerX = player1.symbol === SYMBOL.X ? player1 : player2;
   const playerO = player1.symbol === SYMBOL.O ? player1 : player2;
   let nextTurn = playerX.name; // The player using the 'X' symbol always goes first
@@ -160,6 +160,7 @@ const gameController = (function () {
     displayController.disableButtons();
   }
 
+
   return {
     playRound,
   };
@@ -183,15 +184,28 @@ function createPlayer(playerName, playerSymbol) {
 
 // Display controller module
 const displayController = (function () {
-  const rows = [[0, 1, 2], [3, 4, 5], [6, 7, 8]];
-  const columns = [[0, 3, 6], [1, 4, 7], [2, 5, 8]];
-  const diagonals = [[0, 4, 8], [2, 4, 6]];
+  const rows = [
+    [0, 1, 2],
+    [3, 4, 5],
+    [6, 7, 8],
+  ];
+  const columns = [
+    [0, 3, 6],
+    [1, 4, 7],
+    [2, 5, 8],
+  ];
+  const diagonals = [
+    [0, 4, 8],
+    [2, 4, 6],
+  ];
 
   const grid = document.querySelector(".grid");
-  const buttons = document.querySelectorAll("button");
+  const buttons = grid.querySelectorAll("button");
+  const btnRestart = document.querySelector(".btn-restart");
   let clickedCell;
 
   grid.addEventListener("click", handleClick);
+  btnRestart.addEventListener("click", resetDisplay)
 
   function handleClick(e) {
     const cellNumber = Number(e.target.getAttribute("data-cell"));
@@ -215,33 +229,44 @@ const displayController = (function () {
     switch (id) {
       case "rows":
         const winnerRow = rows[index];
-        winnerRow.forEach(cellId => {
+        winnerRow.forEach((cellId) => {
           const btn = grid.querySelector(`[data-cell="${cellId}"]`);
           btn.classList.add("highlight");
-        })
-      break;
+        });
+        break;
 
       case "cols":
         const winnerCol = columns[index];
-        winnerCol.forEach(cellId => {
+        winnerCol.forEach((cellId) => {
           const btn = grid.querySelector(`[data-cell="${cellId}"]`);
           btn.classList.add("highlight");
-        })
-      break;
+        });
+        break;
 
       case "diagonals":
         const winnerDiagonal = diagonals[index];
-        winnerDiagonal.forEach(cellId => {
+        winnerDiagonal.forEach((cellId) => {
           const btn = grid.querySelector(`[data-cell="${cellId}"]`);
           btn.classList.add("highlight");
-        })
-      break;
+        });
+        break;
     }
+  }
+
+  function resetDisplay() {
+    buttons.forEach(button => {
+      button.classList.remove("highlight");
+      button.textContent = "";
+      button.disabled = false;
+    })
+
+    gameboard.resetBoard();
   }
 
   return {
     renderCell,
     disableButtons,
     highlightDirection,
+    resetDisplay,
   };
 })();
