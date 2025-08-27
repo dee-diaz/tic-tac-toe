@@ -109,6 +109,7 @@ const gameController = (function () {
   }
 
   function playRound(cellNum) {
+    if (!nextTurn) return;
     if (nextTurn === player1.name) {
       player1.makeMove(cellNum);
       console.log(`${player1.name} made a move`);
