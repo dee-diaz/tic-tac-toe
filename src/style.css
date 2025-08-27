@@ -181,16 +181,16 @@ button {
     > button {
       font-size: 6rem;
     }
+
+    .info {
+      height: 150px;
+      font-size: 2.5rem;
+    }
   }
 
   .btn-restart {
     border-radius: 4px;
     padding: 0.75rem 2rem;
     font-size: 1.25rem;
-  }
-
-  .info {
-    height: 150px;  
-    font-size: 2.5rem;
   }
 }
