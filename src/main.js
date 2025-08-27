@@ -59,6 +59,7 @@ const gameboard = (function () {
   function resetBoard() {
     gameboard = [];
     createBoard();
+    console.clear();
   }
 
   function isFull() {
@@ -95,11 +96,11 @@ const gameController = (function () {
     O: "O",
   };
   let isThereWinner = false;
-  const player1 = createPlayer("Diana", SYMBOL.O);
-  const player2 = createPlayer("Computer", SYMBOL.X);
-  const playerX = player1.symbol === SYMBOL.X ? player1 : player2;
-  const playerO = player1.symbol === SYMBOL.O ? player1 : player2;
-  let nextTurn = playerX.name; // The player using the 'X' symbol always goes first
+  let player1;
+  let player2;
+  let playerX;
+  let playerO;
+  let nextTurn; // The player using the 'X' symbol always goes first
 
   function switchPlayer() {
     nextTurn === player1.name
@@ -160,9 +161,35 @@ const gameController = (function () {
     displayController.disableButtons();
   }
 
+  function setPlayers(userChoice) {
+    console.log("User choice: ", userChoice);
+    if (userChoice === SYMBOL.X) {
+      player1 = createPlayer("Player", SYMBOL.X);
+      player2 = createPlayer("Computer", SYMBOL.O);
+    } else if (userChoice === SYMBOL.O) {
+      player1 = createPlayer("Player", SYMBOL.O);
+      player2 = createPlayer("Computer", SYMBOL.X);
+    }
+
+    playerX = player1.symbol === SYMBOL.X ? player1 : player2;
+    playerO = player1.symbol === SYMBOL.O ? player1 : player2;
+    nextTurn = playerX.name;
+  } 
+
+  function resetRound() {
+    player1 = undefined;
+    player2 = undefined;
+    playerX = undefined;
+    playerO = undefined;
+    nextTurn = undefined;
+    isThereWinner = false;
+  }
+
 
   return {
     playRound,
+    setPlayers,
+    resetRound,
   };
 })();
 
@@ -202,10 +229,14 @@ const displayController = (function () {
   const grid = document.querySelector(".grid");
   const buttons = grid.querySelectorAll("button");
   const btnRestart = document.querySelector(".btn-restart");
+  const choiceButtons = document.querySelectorAll(".symbol-choice button[data-choice]");
+  const choiceText = document.querySelector(".symbol-choice > p");
   let clickedCell;
 
   grid.addEventListener("click", handleClick);
-  btnRestart.addEventListener("click", resetDisplay)
+  btnRestart.addEventListener("click", resetDisplay);
+  choiceButtons.forEach(button => button.addEventListener("click", highlightUserChoice))
+  
 
   function handleClick(e) {
     const cellNumber = Number(e.target.getAttribute("data-cell"));
@@ -258,15 +289,29 @@ const displayController = (function () {
       button.classList.remove("highlight");
       button.textContent = "";
       button.disabled = false;
+    });
+
+    choiceButtons.forEach(button => {
+      button.classList.remove("highlight");
     })
 
+    choiceText.innerHTML = `Choose your symbol <br>(X goes first)`;
+
     gameboard.resetBoard();
+    gameController.resetRound();
   }
 
+  function highlightUserChoice(e) {
+    const btn = e.target;
+    const value = btn.getAttribute("data-choice");
+    btn.classList.add("highlight");
+    choiceText.textContent = `Your symbol is ${value}`;
+    gameController.setPlayers(value);
+  }
+ 
   return {
     renderCell,
     disableButtons,
     highlightDirection,
-    resetDisplay,
   };
 })();

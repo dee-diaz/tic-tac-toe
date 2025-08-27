@@ -38,7 +38,41 @@ h1 {
   justify-content: center;
   align-items: center;
   flex-direction: column;
-  gap: 4rem;
+  gap: 2rem;
+}
+
+.symbol-choice {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 300px;
+
+  &:has(button.highlight) {
+    button {
+      pointer-events: none;
+    }
+  }
+
+  p {
+    font-size: 1rem;
+  }
+  > div {
+    width: 100%;
+    display: flex;
+    gap: 1rem;
+
+    button {
+      flex: 1;
+      font-size: 1.25rem;
+      font-weight: 500;
+
+      &.highlight {
+        background-color: #fff;
+        color: black;
+        border: 1px solid gray;
+      }
+    }
+  }
 }
 
 .grid {
@@ -76,7 +110,8 @@ h1 {
   }
 }
 
-.btn-restart {
+.btn-restart,
+.symbol-choice button {
   border-radius: 4px;
   padding: 0.75rem 1.25rem;
   font-size: 1rem;
@@ -94,6 +129,14 @@ h1 {
 }
 
 @media (min-width: 992px) {
+  .container {
+    gap: 4rem;
+  }
+
+  .symbol-choice p {
+    font-size: 1.25rem;
+  }
+
   .grid {
     width: 600px;
     height: 600px;
