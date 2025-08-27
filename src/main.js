@@ -101,6 +101,8 @@ const gameController = (function () {
   let playerX;
   let playerO;
   let nextTurn; // The player using the 'X' symbol always goes first
+  let scoreX = 0;
+  let scoreO = 0;
 
   function switchPlayer() {
     nextTurn === player1.name
@@ -157,9 +159,15 @@ const gameController = (function () {
     } else {
       console.log(player.name, "won!");
       isThereWinner = true;
+      updateScore(player);
     }
 
     displayController.disableButtons();
+  }
+
+  function updateScore(player) {
+    (player.symbol === SYMBOL.X) ? scoreX++ : scoreO++;
+    displayController.updateScore(scoreX, scoreO);
   }
 
   function setPlayers(userChoice) {
@@ -175,7 +183,7 @@ const gameController = (function () {
     playerX = player1.symbol === SYMBOL.X ? player1 : player2;
     playerO = player1.symbol === SYMBOL.O ? player1 : player2;
     nextTurn = playerX.name;
-  } 
+  }
 
   function resetRound() {
     player1 = undefined;
@@ -184,8 +192,9 @@ const gameController = (function () {
     playerO = undefined;
     nextTurn = undefined;
     isThereWinner = false;
+    scoreX = 0;
+    scoreO = 0;
   }
-
 
   return {
     playRound,
@@ -230,14 +239,18 @@ const displayController = (function () {
   const grid = document.querySelector(".grid");
   const buttons = grid.querySelectorAll("button");
   const btnRestart = document.querySelector(".btn-restart");
-  const choiceButtons = document.querySelectorAll(".symbol-choice button[data-choice]");
+  const choiceButtons = document.querySelectorAll(
+    ".symbol-choice button[data-choice]"
+  );
   const choiceText = document.querySelector(".symbol-choice > p");
+  const scores = document.querySelectorAll(".score");
   let clickedCell;
 
   grid.addEventListener("click", handleClick);
   btnRestart.addEventListener("click", resetDisplay);
-  choiceButtons.forEach(button => button.addEventListener("click", highlightUserChoice))
-  
+  choiceButtons.forEach((button) =>
+    button.addEventListener("click", highlightUserChoice)
+  );
 
   function handleClick(e) {
     const cellNumber = Number(e.target.getAttribute("data-cell"));
@@ -286,17 +299,19 @@ const displayController = (function () {
   }
 
   function resetDisplay() {
-    buttons.forEach(button => {
+    buttons.forEach((button) => {
       button.classList.remove("highlight");
       button.textContent = "";
       button.disabled = false;
     });
 
-    choiceButtons.forEach(button => {
+    choiceButtons.forEach((button) => {
       button.classList.remove("highlight");
-    })
+    });
 
     choiceText.innerHTML = `Choose your symbol <br>(X goes first)`;
+
+    scores.forEach(score => score.innerText = ": 0");
 
     gameboard.resetBoard();
     gameController.resetRound();
@@ -305,14 +320,21 @@ const displayController = (function () {
   function highlightUserChoice(e) {
     const btn = e.target;
     const value = btn.getAttribute("data-choice");
+    choiceButtons.forEach((button) => button.classList.remove("highlight"));
     btn.classList.add("highlight");
     choiceText.textContent = `Your symbol is ${value}`;
     gameController.setPlayers(value);
   }
- 
+
+  function updateScore(xScore, oScore) {
+    scores[0].textContent = `: ${xScore}`;
+    scores[1].textContent = `: ${oScore}`;
+  }
+
   return {
     renderCell,
     disableButtons,
     highlightDirection,
+    updateScore,
   };
 })();
