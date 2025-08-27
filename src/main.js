@@ -124,6 +124,14 @@ const gameController = (function () {
     checkGameStatus();
   }
 
+  function playNextGame() {
+    displayController.resetForNewGame();
+    displayController.enableButtons();
+    nextTurn = playerX.name;
+    isThereWinner = false;
+    gameboard.resetBoard();
+  }
+
   function checkGameStatus() {
     const isGameboardFull = gameboard.isFull();
     const rows = gameboard.divideByRows();
@@ -163,11 +171,14 @@ const gameController = (function () {
     }
 
     displayController.disableButtons();
+
+    setTimeout(playNextGame, 2000);
   }
 
   function updateScore(player) {
     (player.symbol === SYMBOL.X) ? scoreX++ : scoreO++;
     displayController.updateScore(scoreX, scoreO);
+    displayController.highlightScore(player.symbol);
   }
 
   function setPlayers(userChoice) {
@@ -270,6 +281,10 @@ const displayController = (function () {
     buttons.forEach((button) => (button.disabled = true));
   }
 
+  function enableButtons() {
+    buttons.forEach((button) => (button.disabled = false));
+  }
+
   function highlightDirection(id, index) {
     switch (id) {
       case "rows":
@@ -298,12 +313,18 @@ const displayController = (function () {
     }
   }
 
-  function resetDisplay() {
+  function resetForNewGame() {
     buttons.forEach((button) => {
       button.classList.remove("highlight");
       button.textContent = "";
       button.disabled = false;
     });
+
+    
+  }
+
+  function resetDisplay() {
+    resetForNewGame();
 
     choiceButtons.forEach((button) => {
       button.classList.remove("highlight");
@@ -331,10 +352,22 @@ const displayController = (function () {
     scores[1].textContent = `: ${oScore}`;
   }
 
+  function highlightScore(score) {
+    if (score === "X") choiceButtons[0].classList.add("green-border");
+    if (score === "O") choiceButtons[1].classList.add("green-border");
+
+    setTimeout(() => {
+      choiceButtons.forEach(button => button.classList.remove("green-border"));
+    }, 1000)
+  }
+
   return {
     renderCell,
     disableButtons,
+    enableButtons,
     highlightDirection,
     updateScore,
+    resetForNewGame,
+    highlightScore,
   };
 })();
