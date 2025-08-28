@@ -70,7 +70,6 @@ const gameboard = (function () {
     if (gameboard[index] === "") {
       gameboard[index] = symbol;
       displayController.renderCell(symbol);
-      console.log(gameboard);
     } else {
       return;
     }
@@ -95,12 +94,17 @@ const gameController = (function () {
     X: "X",
     O: "O",
   };
+  const PLAYER = {
+    HUMAN: "Player",
+    BOT: "Computer",
+  };
+
   let isThereWinner = false;
   let player1;
   let player2;
   let playerX;
   let playerO;
-  let nextTurn; // The player using the 'X' symbol always goes first
+  let nextTurn;
   let scoreX = 0;
   let scoreO = 0;
 
@@ -127,7 +131,7 @@ const gameController = (function () {
   function playNextGame() {
     displayController.resetForNewGame();
     displayController.enableButtons();
-    nextTurn = playerX.name;
+    if (playerX) nextTurn = playerX.name;
     isThereWinner = false;
     gameboard.resetBoard();
   }
@@ -165,8 +169,8 @@ const gameController = (function () {
     const message = {
       tie: "It's a tie 🤝",
       win: "You won 🏆",
-      loss: "Computer won 🤖"
-    }
+      loss: "Computer won 🤖",
+    };
     if (!player) {
       console.log("It's a tie!");
       displayController.showInfoMessage(message.tie);
@@ -182,7 +186,7 @@ const gameController = (function () {
   }
 
   function updateScore(player) {
-    (player.symbol === SYMBOL.X) ? scoreX++ : scoreO++;
+    player.symbol === SYMBOL.X ? scoreX++ : scoreO++;
     displayController.updateScore(scoreX, scoreO);
     displayController.highlightScore(player.symbol);
   }
@@ -190,11 +194,11 @@ const gameController = (function () {
   function setPlayers(userChoice) {
     console.log("User choice: ", userChoice);
     if (userChoice === SYMBOL.X) {
-      player1 = createPlayer("Player", SYMBOL.X);
-      player2 = createPlayer("Computer", SYMBOL.O);
+      player1 = createPlayer(PLAYER.HUMAN, SYMBOL.X);
+      player2 = createPlayer(PLAYER.BOT, SYMBOL.O);
     } else if (userChoice === SYMBOL.O) {
-      player1 = createPlayer("Player", SYMBOL.O);
-      player2 = createPlayer("Computer", SYMBOL.X);
+      player1 = createPlayer(PLAYER.HUMAN, SYMBOL.O);
+      player2 = createPlayer(PLAYER.BOT, SYMBOL.X);
     }
 
     playerX = player1.symbol === SYMBOL.X ? player1 : player2;
@@ -229,10 +233,19 @@ function createPlayer(playerName, playerSymbol) {
     gameboard.placeMark(cellNumber, symbol);
   }
 
+  function makeBotMove() {
+    const rows = gameboard.divideByRows();
+    const cols = gameboard.divideByColumns();
+    const diagonals = gameboard.divideByDiagonals();
+
+    console.log({ rows, cols, diagonals });
+  }
+
   return {
     name,
     symbol,
     makeMove,
+    makeBotMove,
   };
 }
 
@@ -254,7 +267,7 @@ const displayController = (function () {
   ];
 
   const grid = document.querySelector(".grid");
-  const infoMessageCont = grid.querySelector(".info"); 
+  const infoMessageCont = grid.querySelector(".info");
   const buttons = grid.querySelectorAll("button");
   const btnRestart = document.querySelector(".btn-restart");
   const choiceButtons = document.querySelectorAll(
@@ -326,8 +339,6 @@ const displayController = (function () {
       button.textContent = "";
       button.disabled = false;
     });
-
-    
   }
 
   function resetDisplay() {
@@ -339,7 +350,7 @@ const displayController = (function () {
 
     choiceText.innerHTML = `Choose your symbol <br>(X goes first)`;
 
-    scores.forEach(score => score.innerText = ": 0");
+    scores.forEach((score) => (score.innerText = ": 0"));
 
     gameboard.resetBoard();
     gameController.resetRound();
@@ -364,8 +375,10 @@ const displayController = (function () {
     if (score === "O") choiceButtons[1].classList.add("green-border");
 
     setTimeout(() => {
-      choiceButtons.forEach(button => button.classList.remove("green-border"));
-    }, 1000)
+      choiceButtons.forEach((button) =>
+        button.classList.remove("green-border")
+      );
+    }, 1000);
   }
 
   function showInfoMessage(message) {
